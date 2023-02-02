@@ -1,3 +1,11 @@
+const COLORS = {
+    player: "#63bec2",
+    blankCell: "#e0e1dd",
+    activeCell: "#e63946",
+    visitedCell: "#e0e1dd",
+    exitCell: "#87c97b",
+    wall: "#4d4f45",
+};
 const CELL_WIDTH = 16;
 const CELL_HEIGHT = 16;
 const screen = document.getElementById("screen");
@@ -6,9 +14,10 @@ screen.height = 640;
 const c = screen.getContext("2d");
 
 class Cell {
-    constructor(row, col) {
+    constructor(row, col, isExit) {
         this.row = row;
         this.col = col;
+        this.isExit = isExit;
         this.walls = {
             top: true,
             right: true,
@@ -31,13 +40,15 @@ class Cell {
     }
 
     _drawBackground() {
-        if (this.active) {
-            c.fillStyle = "#e63946";
-        } else if (this.visited) {
-            c.fillStyle = "#a8dadc";
-        } else {
-            c.fillStyle = "#ffffff";
-        }
+        if (this.isExit) {
+            c.fillStyle = COLORS.blankCell;
+            c.fillRect(this.x, this.y, CELL_WIDTH, CELL_HEIGHT);
+            c.fillStyle = COLORS.exitCell;
+            c.fillRect(this.x + 2, this.y + 2, CELL_WIDTH - 4, CELL_HEIGHT - 4);
+            return;
+        } else if (this.active) c.fillStyle = COLORS.activeCell;
+        else if (this.visited) c.fillStyle = COLORS.visitedCell;
+        else c.fillStyle = COLORS.blankCell;
         c.fillRect(this.x, this.y, CELL_WIDTH, CELL_HEIGHT);
     }
 
@@ -67,7 +78,7 @@ class Cell {
     }
 
     _drawLine(xi, yi, xf, yf) {
-        c.strokeStyle = "#457b9d";
+        c.strokeStyle = COLORS.wall;
         c.beginPath();
         c.moveTo(xi, yi);
         c.lineTo(xf, yf);
@@ -158,7 +169,7 @@ class Player {
     }
 
     draw() {
-        c.fillStyle = "#f1faee";
+        c.fillStyle = COLORS.player;
         c.fillRect(this.x, this.y, CELL_WIDTH - 4, CELL_HEIGHT - 4);
     }
 
@@ -172,21 +183,13 @@ class Player {
 class Grid {
     constructor() {
         this.isMazeReady = false;
-        // this.isPlaying = true;
-        // this.player = null;
         this.currentAnimationId = 0;
         this.numRows = Math.floor(screen.height / CELL_HEIGHT);
         this.numCols = Math.floor(screen.width / CELL_WIDTH);
-        [this.exitX, this.exitY] = this.getRandomRowAndCol();
+        this.exitRow = null;
+        this.exitCol = null;
         this.grid = this._buildGrid();
         this.draw();
-        // this.movePlayer = (event) => this._handleMove(event);
-    }
-
-    draw() {
-        // this._clearScreen();
-        this._drawCells();
-        // this._drawPlayer();
     }
 
     _makeGridFilledWithZeros(numRows, numCols) {
@@ -198,7 +201,7 @@ class Grid {
     _fillGridWithCells(grid) {
         for (let row = 0; row < grid.length; row++) {
             for (let col = 0; col < grid[0].length; col++) {
-                grid[row][col] = new Cell(row, col);
+                grid[row][col] = new Cell(row, col, this.isExit(row, col));
             }
         }
     }
@@ -217,7 +220,7 @@ class Grid {
         this.grid = this._buildGrid();
     }
 
-    _drawCells() {
+    draw() {
         for (let row = 0; row < this.grid.length; row++) {
             for (let col = 0; col < this.grid[0].length; col++) {
                 const cell = this.grid[row][col];
@@ -227,18 +230,16 @@ class Grid {
         }
     }
 
-    // _drawPlayer() {
-    //     if (this.player) this.player.draw();
-    // }
+    isExit(row, col) {
+        return row === this.exitRow && col === this.exitCol;
+    }
 
     _isValidCell(row, col) {
-        return (
-            row >= 0 &&
-            row < this.numRows &&
-            col >= 0 &&
-            col < this.numCols &&
-            this.grid[row][col].visited === false
-        );
+        return this._isInsideGrid(row, col) && !this._hasBeenVisited(row, col);
+    }
+
+    _hasBeenVisited(row, col) {
+        return this.grid[row][col].visited === true;
     }
 
     _shuffle(arr) {
@@ -259,11 +260,11 @@ class Grid {
     _pushNeighborToStack(direction, currentCell, stack) {
         const { row, col } = currentCell;
         const { deltaRow, deltaCol } = direction;
+        const nextRow = row + deltaRow;
+        const nextCol = col + deltaCol;
 
-        if (this._isValidCell(row + deltaRow, col + deltaCol)) {
-            stack.push(
-                new Move(this.grid[row + deltaRow][col + deltaCol], currentCell)
-            );
+        if (this._isValidCell(nextRow, nextCol)) {
+            stack.push(new Move(this.grid[nextRow][nextCol], currentCell));
         }
     }
 
@@ -287,12 +288,6 @@ class Grid {
         this._pushNeighborsToStack(move.currentCell, stack);
     }
 
-    _startNewAnimation() {
-        const animationId = this.currentAnimationId + 1;
-        this.currentAnimationId++;
-        return animationId;
-    }
-
     _isCurrentAnimation(animationId) {
         return this.currentAnimationId === animationId;
     }
@@ -304,14 +299,11 @@ class Grid {
     }
 
     generateMazeAnimated() {
-        this.isMazeReady = false;
-        this._clearGrid();
-        this._clearScreen();
-        // this._stopPlaying();
+        this._setupMazeGeneration();
 
-        const animationId = this._startNewAnimation();
         const [initialRow, initialCol] = this.getRandomRowAndCol();
         const stack = new CellStack(this.grid, initialRow, initialCol);
+        const animationId = this.currentAnimationId;
 
         const animate = () => {
             if (!this._isCurrentAnimation(animationId)) return;
@@ -329,11 +321,8 @@ class Grid {
     }
 
     generateMaze() {
-        this.currentAnimationId++;
-        this._clearGrid();
-        this._clearScreen();
-        // this._stopPlaying();
-        this.isMazeReady = false;
+        this._setupMazeGeneration();
+
         const [initialRow, initialCol] = this.getRandomRowAndCol();
         const stack = new CellStack(this.grid, initialRow, initialCol);
 
@@ -342,7 +331,20 @@ class Grid {
         }
 
         this.draw();
+        this.draw();
         this.isMazeReady = true;
+    }
+
+    _setupMazeGeneration() {
+        this.currentAnimationId++;
+        this.isMazeReady = false;
+        this._createExit();
+        this._clearGrid();
+        this._clearScreen();
+    }
+
+    _createExit() {
+        [this.exitRow, this.exitCol] = this.getRandomRowAndCol();
     }
 
     _removeWalls(move) {
@@ -393,67 +395,14 @@ class Grid {
     _isInsideGrid(row, col) {
         return row >= 0 && row < this.numRows && col >= 0 && col < this.numCols;
     }
-
-    // _stopPlaying() {
-    //     document.removeEventListener("click", this.movePlayer);
-    //     this.isPlaying = false;
-    //     this.player = null;
-    // }
-
-    // _handleMove(event) {
-    //     const { key } = event;
-    //     const directions = {
-    //         ArrowUp: [-1, 0],
-    //         ArrowRight: [0, 1],
-    //         ArrowDown: [1, 0],
-    //         ArrowLeft: [0, -1],
-    //     };
-
-    //     const isArrow = !!directions[key];
-    //     if (!isArrow) return;
-
-    //     const currentRow = this.player.row;
-    //     const currentCol = this.player.col;
-    //     const nextRow = currentRow + directions[key][0];
-    //     const nextCol = currentCol + directions[key][1];
-
-    //     if (this.isValidMove(currentRow, currentCol, nextRow, nextCol)) {
-    //         this.player.moveTo(nextRow, nextCol);
-    //     }
-    // }
-
-    // _listenToPlayerMoves() {
-    //     document.addEventListener("keydown", this.movePlayer);
-    // }
-
-    // _startGameLoop() {
-    //     this._listenToPlayerMoves();
-
-    //     const animate = () => {
-    //         console.log("looping");
-    //         if (!this.isPlaying) return;
-    //         this.draw();
-    //         requestAnimationFrame(animate);
-    //     };
-
-    //     requestAnimationFrame(animate);
-    // }
-
-    // startGame() {
-    //     if (!this.isMazeReady) return console.log("maze is not ready");
-    //     this._stopPlaying();
-    //     const [playerInitialRow, playerInitialCol] = this.getRandomRowAndCol();
-    //     this.player = new Player(playerInitialRow, playerInitialCol);
-    //     this.isPlaying = true;
-    //     this._startGameLoop();
-    // }
 }
 
 class Game {
     constructor() {
+        this._grid = new Grid();
         this._player = null;
         this._isPlaying = false;
-        this._grid = new Grid();
+        this.timer = 30;
         this._movePlayer = (event) => this._handleMove(event);
     }
 
@@ -473,10 +422,15 @@ class Game {
     _startGameLoop() {
         const animate = () => {
             if (!this._canPlay()) return;
+            if (this._hasWon()) console.log("WIN!");
             this._draw();
             requestAnimationFrame(animate);
         };
         requestAnimationFrame(animate);
+    }
+
+    _hasWon() {
+        return this._grid.isExit(this._player.row, this._player.col);
     }
 
     _canPlay() {
@@ -498,6 +452,7 @@ class Game {
             this._createPlayer();
             this._listenToPlayerMoves();
             this._isPlaying = true;
+            this.timer = 30;
         }
     }
 
@@ -550,11 +505,38 @@ class Game {
     }
 }
 
-const game = new Game();
+class UI {
+    constructor() {
+        this._game = new Game();
+        this._setupButtons();
+    }
 
-const animateButton = document.getElementById("animate");
-animateButton.addEventListener("click", () => game.generateMazeAnimated());
-const generateInstButton = document.getElementById("generate-inst");
-generateInstButton.addEventListener("click", () => game.generateMaze());
-const playButton = document.getElementById("play");
-playButton.addEventListener("click", () => game.start());
+    _setupButtons() {
+        this._setupAnimateButton();
+        this._setupGenerateInstButton();
+        this._setupPlayButton();
+    }
+
+    _setupAnimateButton() {
+        const animateButton = document.getElementById("animate");
+        animateButton.addEventListener("click", () =>
+            this._game.generateMazeAnimated()
+        );
+    }
+
+    _setupGenerateInstButton() {
+        const generateInstButton = document.getElementById("generate-inst");
+        generateInstButton.addEventListener("click", () =>
+            this._game.generateMaze()
+        );
+    }
+
+    _setupPlayButton() {
+        const playButton = document.getElementById("play");
+        playButton.addEventListener("click", () => this._game.start());
+    }
+
+    _showRules() {}
+}
+
+new UI();
