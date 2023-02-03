@@ -1,16 +1,20 @@
 const COLORS = {
-    player: "#63bec2",
-    blankCell: "#e0e1dd",
+    player: "coral", //"#63bec2",
+    blinkingPlayer: "#e63946", //"#41878a",
+    blankCell: "#cfcfce",
     activeCell: "#e63946",
     visitedCell: "#e0e1dd",
     exitCell: "#87c97b",
     wall: "#4d4f45",
 };
+let MS_PER_FRAME = 0;
 const CELL_WIDTH = 16;
 const CELL_HEIGHT = 16;
+const NUM_ROWS = 36;
+const NUM_COLS = 36;
 const screen = document.getElementById("screen");
-screen.width = 640;
-screen.height = 640;
+screen.width = NUM_COLS * CELL_WIDTH;
+screen.height = NUM_ROWS * CELL_HEIGHT;
 const c = screen.getContext("2d");
 
 class Cell {
@@ -41,7 +45,7 @@ class Cell {
 
     _drawBackground() {
         if (this.isExit) {
-            c.fillStyle = COLORS.blankCell;
+            c.fillStyle = COLORS.visitedCell;
             c.fillRect(this.x, this.y, CELL_WIDTH, CELL_HEIGHT);
             c.fillStyle = COLORS.exitCell;
             c.fillRect(this.x + 2, this.y + 2, CELL_WIDTH - 4, CELL_HEIGHT - 4);
@@ -162,6 +166,8 @@ class Player {
         this.row = initialRow;
         this.col = initialCol;
         [this.x, this.y] = this._getCoordinates(this.row, this.col);
+        this._blinkCounting = 0;
+        this._isShowing = true;
     }
 
     _getCoordinates(row, col) {
@@ -169,7 +175,7 @@ class Player {
     }
 
     draw() {
-        c.fillStyle = COLORS.player;
+        c.fillStyle = this._isShowing ? COLORS.player : COLORS.blinkingPlayer;
         c.fillRect(this.x, this.y, CELL_WIDTH - 4, CELL_HEIGHT - 4);
     }
 
@@ -177,6 +183,16 @@ class Player {
         this.row = row;
         this.col = col;
         [this.x, this.y] = this._getCoordinates(row, col);
+    }
+
+    blink() {
+        const blinkFrameInterval = 15;
+        this._isShowing = this._blinkCounting <= blinkFrameInterval;
+        if (this._blinkCounting <= 1.5 * blinkFrameInterval) {
+            this._blinkCounting++;
+        } else {
+            this._blinkCounting = 0;
+        }
     }
 }
 
@@ -306,15 +322,17 @@ class Grid {
         const animationId = this.currentAnimationId;
 
         const animate = () => {
-            if (!this._isCurrentAnimation(animationId)) return;
-            if (stack.length > 0) {
-                this._dfs(stack);
-                this.draw();
-                requestAnimationFrame(animate);
-            } else {
-                this.draw(); // Clear active cells after maze is finished
-                this.isMazeReady = true;
-            }
+            setTimeout(() => {
+                if (!this._isCurrentAnimation(animationId)) return;
+                if (stack.length > 0) {
+                    this._dfs(stack);
+                    this.draw();
+                    requestAnimationFrame(animate);
+                } else {
+                    this.draw(); // Clear active cells after maze is finished
+                    this.isMazeReady = true;
+                }
+            }, MS_PER_FRAME);
         };
 
         requestAnimationFrame(animate);
@@ -402,6 +420,7 @@ class Game {
         this._grid = new Grid();
         this._player = null;
         this._isPlaying = false;
+        this._currentGameLoop = 0;
         this.timer = 30;
         this._movePlayer = (event) => this._handleMove(event);
     }
@@ -415,13 +434,17 @@ class Game {
     }
 
     start() {
+        this._reset();
         this._setup();
         this._startGameLoop();
     }
 
     _startGameLoop() {
+        const gameLoop = this._currentGameLoop;
+
         const animate = () => {
             if (!this._canPlay()) return;
+            if (gameLoop !== this._currentGameLoop) return;
             if (this._hasWon()) console.log("WIN!");
             this._draw();
             requestAnimationFrame(animate);
@@ -444,7 +467,10 @@ class Game {
     _draw() {
         this._clearScreen();
         this._grid.draw();
-        if (this._player) this._player.draw();
+        if (this._player) {
+            this._player.blink();
+            this._player.draw();
+        }
     }
 
     _setup() {
@@ -452,6 +478,7 @@ class Game {
             this._createPlayer();
             this._listenToPlayerMoves();
             this._isPlaying = true;
+            this._currentGameLoop++;
             this.timer = 30;
         }
     }
@@ -515,6 +542,7 @@ class UI {
         this._setupAnimateButton();
         this._setupGenerateInstButton();
         this._setupPlayButton();
+        this._setupAnimationSpeedButtons();
     }
 
     _setupAnimateButton() {
@@ -534,6 +562,27 @@ class UI {
     _setupPlayButton() {
         const playButton = document.getElementById("play");
         playButton.addEventListener("click", () => this._game.start());
+    }
+
+    _setupAnimationSpeedButtons() {
+        const fastButton = document.getElementById("animation-fast");
+        const mediumButton = document.getElementById("animation-medium");
+        const slowButton = document.getElementById("animation-slow");
+        fastButton.addEventListener("click", () =>
+            this._setAnimationSpeed("fast")
+        );
+        mediumButton.addEventListener("click", () =>
+            this._setAnimationSpeed("medium")
+        );
+        slowButton.addEventListener("click", () =>
+            this._setAnimationSpeed("slow")
+        );
+    }
+
+    _setAnimationSpeed(speed) {
+        if (speed === "fast") MS_PER_FRAME = 0;
+        else if (speed === "medium") MS_PER_FRAME = 50;
+        else if (speed === "slow") MS_PER_FRAME = 100;
     }
 
     _showRules() {}
