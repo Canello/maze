@@ -2,16 +2,17 @@ const COLORS = {
     player: "coral", //"#63bec2",
     blinkingPlayer: "#e63946", //"#41878a",
     blankCell: "#cfcfce",
-    activeCell: "#e63946",
+    activeCell: "#63bec2",
     visitedCell: "#e0e1dd",
+    exploredCell: "#e8cbbe",
     exitCell: "#87c97b",
     wall: "#4d4f45",
 };
 let MS_PER_FRAME = 0;
 const CELL_WIDTH = 16;
 const CELL_HEIGHT = 16;
-const NUM_ROWS = 36;
-const NUM_COLS = 36;
+const NUM_ROWS = 32;
+const NUM_COLS = 32;
 const screen = document.getElementById("screen");
 screen.width = NUM_COLS * CELL_WIDTH;
 screen.height = NUM_ROWS * CELL_HEIGHT;
@@ -32,6 +33,7 @@ class Cell {
         this.y = this.row * CELL_HEIGHT;
         this.visited = false;
         this.active = false;
+        this.explored = false;
     }
 
     isDuplicate(anotherCell) {
@@ -45,15 +47,20 @@ class Cell {
 
     _drawBackground() {
         if (this.isExit) {
-            c.fillStyle = COLORS.visitedCell;
-            c.fillRect(this.x, this.y, CELL_WIDTH, CELL_HEIGHT);
-            c.fillStyle = COLORS.exitCell;
-            c.fillRect(this.x + 2, this.y + 2, CELL_WIDTH - 4, CELL_HEIGHT - 4);
+            this._drawExit();
             return;
         } else if (this.active) c.fillStyle = COLORS.activeCell;
+        else if (this.explored) c.fillStyle = COLORS.exploredCell;
         else if (this.visited) c.fillStyle = COLORS.visitedCell;
         else c.fillStyle = COLORS.blankCell;
         c.fillRect(this.x, this.y, CELL_WIDTH, CELL_HEIGHT);
+    }
+
+    _drawExit() {
+        c.fillStyle = COLORS.visitedCell;
+        c.fillRect(this.x, this.y, CELL_WIDTH, CELL_HEIGHT);
+        c.fillStyle = COLORS.exitCell;
+        c.fillRect(this.x + 2, this.y + 2, CELL_WIDTH - 4, CELL_HEIGHT - 4);
     }
 
     _drawWalls() {
@@ -103,6 +110,14 @@ class Cell {
 
     deactivate() {
         this.active = false;
+    }
+
+    explore() {
+        this.explored = true;
+    }
+
+    unexplore() {
+        this.explored = false;
     }
 }
 
@@ -413,129 +428,45 @@ class Grid {
     _isInsideGrid(row, col) {
         return row >= 0 && row < this.numRows && col >= 0 && col < this.numCols;
     }
-}
 
-class Game {
-    constructor() {
-        this._grid = new Grid();
-        this._player = null;
-        this._isPlaying = false;
-        this._currentGameLoop = 0;
-        this.timer = 30;
-        this._movePlayer = (event) => this._handleMove(event);
+    exploreCell(row, col) {
+        const cell = this.grid[row][col];
+        cell.explore();
     }
 
-    generateMazeAnimated() {
-        this._grid.generateMazeAnimated();
+    unexploreCell(row, col) {
+        const cell = this.grid[row][col];
+        cell.unexplore();
     }
 
-    generateMaze() {
-        this._grid.generateMaze();
-    }
-
-    start() {
-        this._reset();
-        this._setup();
-        this._startGameLoop();
-    }
-
-    _startGameLoop() {
-        const gameLoop = this._currentGameLoop;
-
-        const animate = () => {
-            if (!this._canPlay()) return;
-            if (gameLoop !== this._currentGameLoop) return;
-            if (this._hasWon()) console.log("WIN!");
-            this._draw();
-            requestAnimationFrame(animate);
-        };
-        requestAnimationFrame(animate);
-    }
-
-    _hasWon() {
-        return this._grid.isExit(this._player.row, this._player.col);
-    }
-
-    _canPlay() {
-        return this._isPlaying && this._grid.isMazeReady;
-    }
-
-    _clearScreen() {
-        c.clearRect(0, 0, screen.width, screen.height);
-    }
-
-    _draw() {
-        this._clearScreen();
-        this._grid.draw();
-        if (this._player) {
-            this._player.blink();
-            this._player.draw();
+    unexploreAllCells() {
+        for (let row = 0; row < this.numRows; row++) {
+            for (let col = 0; col < this.numCols; col++) {
+                const cell = this.grid[row][col];
+                cell.unexplore();
+            }
         }
-    }
-
-    _setup() {
-        if (this._grid.isMazeReady) {
-            this._createPlayer();
-            this._listenToPlayerMoves();
-            this._isPlaying = true;
-            this._currentGameLoop++;
-            this.timer = 30;
-        }
-    }
-
-    _reset() {
-        this._unlistenToPlayerMoves();
-        this._deletePlayer();
-        this._isPlaying = false;
-    }
-
-    _createPlayer() {
-        const [playerInitialRow, playerInitialCol] =
-            this._grid.getRandomRowAndCol();
-        this._player = new Player(playerInitialRow, playerInitialCol);
-    }
-
-    _deletePlayer() {
-        this._player = null;
-    }
-
-    _listenToPlayerMoves() {
-        document.addEventListener("keydown", this._movePlayer);
-    }
-
-    _unlistenToPlayerMoves() {
-        document.removeEventListener("keydown", this._movePlayer);
-    }
-
-    _handleMove(event) {
-        const move = this._getMove(event.key);
-        if (!move) return;
-
-        const currentRow = this._player.row;
-        const currentCol = this._player.col;
-        const nextRow = currentRow + move[0];
-        const nextCol = currentCol + move[1];
-
-        if (this._grid.isValidMove(currentRow, currentCol, nextRow, nextCol)) {
-            this._player.moveTo(nextRow, nextCol);
-        }
-    }
-
-    _getMove(key) {
-        const allowedMoves = {
-            ArrowUp: [-1, 0],
-            ArrowRight: [0, 1],
-            ArrowDown: [1, 0],
-            ArrowLeft: [0, -1],
-        };
-        return allowedMoves[key];
     }
 }
 
 class UI {
-    constructor() {
-        this._game = new Game();
+    constructor(game) {
+        this._game = game;
         this._setupButtons();
+        this.resetTime();
+    }
+
+    setTime(time) {
+        const timer = document.getElementById("timer");
+        timer.innerHTML = "";
+        const newTime = document.createTextNode(time);
+        timer.appendChild(newTime);
+    }
+
+    resetTime() {
+        const timer = document.getElementById("timer");
+        const time = document.createTextNode(30);
+        timer.appendChild(time);
     }
 
     _setupButtons() {
@@ -543,6 +474,12 @@ class UI {
         this._setupGenerateInstButton();
         this._setupPlayButton();
         this._setupAnimationSpeedButtons();
+        this._setVictoryButton();
+    }
+
+    _setVictoryButton() {
+        const victoryButton = document.getElementById("victory-button");
+        victoryButton.addEventListener("click", () => this.confirmVictory());
     }
 
     _setupAnimateButton() {
@@ -585,7 +522,195 @@ class UI {
         else if (speed === "slow") MS_PER_FRAME = 100;
     }
 
-    _showRules() {}
+    showVictoryPopUp() {
+        const popUp = document.getElementById("victory-pop-up");
+        popUp.classList.remove("hidden");
+    }
+
+    confirmVictory() {
+        this._hideVictoryPopUp();
+        this._game.reset();
+    }
+
+    _hideVictoryPopUp() {
+        const popUp = document.getElementById("victory-pop-up");
+        popUp.classList.add("hidden");
+    }
+
+    showMazeIsNotReadyPopUp() {
+        console.log("maze is not ready");
+    }
 }
 
-new UI();
+class Timer {
+    constructor(UI, initialTime = 30) {
+        this.UI = UI;
+        this.initialTime = initialTime;
+        this.time = this.initialTime;
+        this.currentCountingId = 0;
+        this._setup();
+    }
+
+    _setup() {
+        this.isRunning = true;
+        this.UI.setTime(this.time);
+        this.currentCountingId++;
+    }
+
+    _updateTime(countingId) {
+        setTimeout(() => {
+            if (!this.isRunning) return;
+            if (countingId === this.currentCountingId) {
+                this.time--;
+                this.UI.setTime(this.time);
+                this._updateTime(countingId);
+            }
+        }, 1000);
+    }
+
+    start() {
+        this._setup();
+        const countingId = this.currentCountingId;
+        this._updateTime(countingId);
+    }
+
+    stop() {
+        this.isRunning = false;
+    }
+
+    restart() {
+        this.isRunning = true;
+        this.start();
+    }
+
+    reset() {
+        this.time = this.initialTime;
+    }
+}
+
+class Game {
+    constructor() {
+        this._grid = new Grid();
+        this._player = null;
+        this._currentGameLoopId = 0;
+        this._movePlayer = (event) => this._handleMove(event);
+        this.UI = new UI(this);
+        this.timer = new Timer(this.UI);
+    }
+
+    generateMazeAnimated() {
+        this._grid.generateMazeAnimated();
+    }
+
+    generateMaze() {
+        this._grid.generateMaze();
+    }
+
+    start() {
+        this.reset();
+        this._setup();
+        this._startGameLoop();
+    }
+
+    _startGameLoop() {
+        const gameLoopId = this._currentGameLoopId;
+
+        const animate = () => {
+            if (!this._player) return;
+            if (!this._grid.isMazeReady) {
+                this.UI.showMazeIsNotReady();
+                return;
+            }
+            if (gameLoopId !== this._currentGameLoopId) return;
+            if (this._hasWon()) this._handleVictory();
+            this._draw();
+            requestAnimationFrame(animate);
+        };
+        requestAnimationFrame(animate);
+    }
+
+    _hasWon() {
+        return this._grid.isExit(this._player.row, this._player.col);
+    }
+
+    _handleVictory() {
+        this.timer.stop();
+        this.UI.showVictoryPopUp();
+    }
+
+    _clearScreen() {
+        c.clearRect(0, 0, screen.width, screen.height);
+    }
+
+    _draw() {
+        this._clearScreen();
+        this._grid.draw();
+        if (this._player) {
+            this._player.blink();
+            this._player.draw();
+        }
+    }
+
+    _setup() {
+        if (this._grid.isMazeReady) {
+            this._createPlayer();
+            this._listenToPlayerMoves();
+            this._currentGameLoopId++;
+            this.timer.start();
+        }
+    }
+
+    reset() {
+        this._unlistenToPlayerMoves();
+        this._deletePlayer();
+        this._grid.unexploreAllCells();
+        this.timer.reset();
+        this._draw();
+    }
+
+    _createPlayer() {
+        const [playerInitialRow, playerInitialCol] =
+            this._grid.getRandomRowAndCol();
+        this._player = new Player(playerInitialRow, playerInitialCol);
+    }
+
+    _deletePlayer() {
+        this._player = null;
+    }
+
+    _listenToPlayerMoves() {
+        document.addEventListener("keydown", this._movePlayer);
+    }
+
+    _unlistenToPlayerMoves() {
+        document.removeEventListener("keydown", this._movePlayer);
+    }
+
+    _handleMove(event) {
+        const move = this._getMove(event.key);
+        if (!move) return;
+
+        const currentRow = this._player.row;
+        const currentCol = this._player.col;
+        const nextRow = currentRow + move[0];
+        const nextCol = currentCol + move[1];
+
+        if (this._grid.isValidMove(currentRow, currentCol, nextRow, nextCol)) {
+            this._player.moveTo(nextRow, nextCol);
+            this._grid.exploreCell(currentRow, currentCol);
+            this._grid.exploreCell(nextRow, nextCol);
+        }
+    }
+
+    _getMove(key) {
+        const allowedMoves = {
+            ArrowUp: [-1, 0],
+            ArrowRight: [0, 1],
+            ArrowDown: [1, 0],
+            ArrowLeft: [0, -1],
+        };
+        return allowedMoves[key];
+    }
+}
+
+new Game();

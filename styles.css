@@ -2,6 +2,15 @@
     box-sizing: border-box;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+}
+
 body {
     height: 100vh;
     margin: 0;
@@ -39,12 +48,37 @@ section {
     border: 5px solid #4c4b43;
 }
 
-#pop-up {
+.pop-up {
     width: 300px;
-    height: 300px;
-    background-color: coral;
+    background-color: #bbb5ad;
+    border: 5px solid #4c4b43;
     position: absolute;
     top: calc(50% - 150px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.y-8 {
+    margin-top: 8px;
+}
+
+.y-16 {
+    margin-top: 16px;
+}
+
+.y-32 {
+    margin-top: 32px;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.text-center {
+    text-align: center;
 }
 
 .hidden {
@@ -57,7 +91,7 @@ section {
     padding-right: 16px;
     border: 1px solid #472d2d;
     border-radius: 2px;
-    background-color: #e0e1dd;
+    background-color: #cfcfce;
     transition: 300ms;
 }
 
@@ -69,7 +103,50 @@ section {
 .speed-container {
     display: flex;
     flex-direction: column;
+    margin: 8px;
+    flex: 1;
 }
 
-.speed-button {
+.legends-container {
+    flex: 1;
+}
+
+.legend {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 8px;
+}
+
+.legend-square {
+    height: 12px;
+    width: 12px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.player-color {
+    background-color: coral;
+    animation: player-blink 0.4s infinite;
+}
+
+@keyframes player-blink {
+    0% {
+        background-color: coral;
+    }
+    50% {
+        background-color: coral;
+    }
+    51% {
+        background-color: #e63946;
+    }
+    100% {
+        background-color: #e63946;
+    }
+}
+
+.exit-color {
+    background-color: #87c97b;
+    box-sizing: content-box;
+    border: 2px solid #e0e1dd;
 }
