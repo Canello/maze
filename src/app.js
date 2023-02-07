@@ -1,6 +1,6 @@
 const COLORS = {
-    player: "coral", //"#63bec2",
-    blinkingPlayer: "#e63946", //"#41878a",
+    player: "coral",
+    blinkingPlayer: "#e63946",
     blankCell: "#cfcfce",
     activeCell: "#63bec2",
     visitedCell: "#e0e1dd",
@@ -9,10 +9,10 @@ const COLORS = {
     wall: "#4d4f45",
 };
 let MS_PER_FRAME = 0;
-const CELL_WIDTH = 16;
-const CELL_HEIGHT = 16;
-const NUM_ROWS = 32;
-const NUM_COLS = 32;
+const CELL_WIDTH = 20;
+const CELL_HEIGHT = 20;
+const NUM_ROWS = 24;
+const NUM_COLS = 24;
 const screen = document.getElementById("screen");
 screen.width = NUM_COLS * CELL_WIDTH;
 screen.height = NUM_ROWS * CELL_HEIGHT;
@@ -454,6 +454,8 @@ class UI {
         this._game = game;
         this._setupButtons();
         this.resetTime();
+        this._currentTimerTipId = 0;
+        this._currentMazeIsNotReadyTipId = 0;
     }
 
     setTime(time) {
@@ -537,13 +539,46 @@ class UI {
         popUp.classList.add("hidden");
     }
 
-    showMazeIsNotReadyPopUp() {
-        console.log("maze is not ready");
+    showMazeIsNotReadyTip() {
+        this._currentMazeIsNotReadyTipId++;
+        const mazeIsNotReadyTipId = this._currentMazeIsNotReadyTipId;
+
+        const mazeIsNotReadyTip = document.getElementById(
+            "maze-is-not-ready-tip"
+        );
+        mazeIsNotReadyTip.classList.remove("hidden");
+        setTimeout(() => {
+            if (mazeIsNotReadyTipId === this._currentMazeIsNotReadyTipId)
+                this.hideMazeIsNotReadyTip();
+        }, 3000);
+    }
+
+    hideMazeIsNotReadyTip() {
+        const mazeIsNotReadyTip = document.getElementById(
+            "maze-is-not-ready-tip"
+        );
+        mazeIsNotReadyTip.classList.add("hidden");
+    }
+
+    showTimerTip() {
+        this._currentTimerTipId++;
+        const timerTipId = this._currentTimerTipId;
+
+        const timerTip = document.getElementById("timer-tip");
+        timerTip.classList.remove("hidden");
+        setTimeout(() => {
+            if (timerTipId === this._currentTimerTipId) this.hideTimerTip();
+        }, 5000);
+    }
+
+    hideTimerTip() {
+        const timerTip = document.getElementById("timer-tip");
+        timerTip.classList.add("hidden");
     }
 }
 
 class Timer {
-    constructor(UI, initialTime = 30) {
+    constructor(UI, initialTime = 60) {
         this.UI = UI;
         this.initialTime = initialTime;
         this.time = this.initialTime;
@@ -569,6 +604,7 @@ class Timer {
     }
 
     start() {
+        this.UI.showTimerTip();
         this._setup();
         const countingId = this.currentCountingId;
         this._updateTime(countingId);
@@ -576,6 +612,7 @@ class Timer {
 
     stop() {
         this.isRunning = false;
+        this.UI.hideTimerTip();
     }
 
     restart() {
@@ -585,6 +622,8 @@ class Timer {
 
     reset() {
         this.time = this.initialTime;
+        this.UI.setTime(this.time);
+        this.UI.hideTimerTip();
     }
 }
 
@@ -599,14 +638,21 @@ class Game {
     }
 
     generateMazeAnimated() {
+        this.UI.hideMazeIsNotReadyTip();
+        this.timer.stop();
+        this.reset();
         this._grid.generateMazeAnimated();
     }
 
     generateMaze() {
+        this.UI.hideMazeIsNotReadyTip();
+        this.timer.stop();
+        this.reset();
         this._grid.generateMaze();
     }
 
     start() {
+        if (!this._grid.isMazeReady) this.UI.showMazeIsNotReadyTip();
         this.reset();
         this._setup();
         this._startGameLoop();
@@ -617,10 +663,7 @@ class Game {
 
         const animate = () => {
             if (!this._player) return;
-            if (!this._grid.isMazeReady) {
-                this.UI.showMazeIsNotReady();
-                return;
-            }
+            if (!this._grid.isMazeReady) return;
             if (gameLoopId !== this._currentGameLoopId) return;
             if (this._hasWon()) this._handleVictory();
             this._draw();

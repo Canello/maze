@@ -14,8 +14,14 @@
                 Generate Inst
             </button>
             <button id="play" class="primary-button">Play</button>
-            <span id="timer"></span>
+            <div class="timer-container">
+                <div id="timer"></div>
+                <div id="timer-tip" class="tip hidden">
+                    <span class="tip-text">You have 60 seconds to escape!</span>
+                </div>
+            </div>
         </header>
+
         <section>
             <div class="speed-container">
                 <h2>Animation speed:</h2>
@@ -28,34 +34,50 @@
                     Instantaneous
                 </button>
             </div>
+
             <canvas id="screen"></canvas>
-            <div class="legends-container">
-                <div class="legend">
-                    <div class="legend-square player-color"></div>
-                    <span
-                        >This is you (you're going to appear when you hit
-                        Play)</span
-                    >
-                </div>
+
+            <div class="instructions">
                 <div class="legend">
                     <div class="legend-square exit-color"></div>
                     <span
-                        >This is the exit of the maze (it's going to appear when
-                        you generate the maze)</span
+                        >This is the exit of the maze (appears when the maze is
+                        generated)</span
+                    >
+                </div>
+                <div class="legend">
+                    <div class="legend-square player-color"></div>
+                    <span>This is you (appears when you hit Play)</span>
+                </div>
+                <div class="y-32"></div>
+                <div>
+                    <h3>How to play?</h3>
+                    <br />
+                    <span
+                        >- After generating the maze, hit play to start.
+                        <br /><br />
+                        - Use the arrow keys or W, A, S, D to move the player.
+                        <br /><br />
+                        - You have 60 seconds. You win if you reach the exit
+                        before the time runs out.</span
                     >
                 </div>
             </div>
         </section>
+
         <div id="victory-pop-up" class="pop-up hidden">
             <h2>You Win!</h2>
             <div class="y-8"></div>
             <span class="text-center"
-                >You make it on time. So, you won't need to take shots.</span
+                >You made it on time. So, you won't need to take shots.</span
             >
             <div class="y-16"></div>
             <button id="victory-button" class="primary-button w-100">
                 Noice
             </button>
+        </div>
+        <div id="maze-is-not-ready-tip" class="tip hidden">
+            <span class="tip-text">Uuuh, you gotta have a maze to play...</span>
         </div>
     </body>
     <script src="./src/app.js"></script>

@@ -1,5 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
 * {
     box-sizing: border-box;
+    font-family: "Inter", sans-serif;
 }
 
 h1,
@@ -22,13 +25,12 @@ body {
 }
 
 header {
-    height: 56px;
     width: 100%;
     padding-top: 8px;
     padding-bottom: 8px;
     display: flex;
     justify-content: center;
-    margin-bottom: 8px;
+    align-items: center;
 }
 
 header > * {
@@ -48,9 +50,25 @@ section {
     border: 5px solid #4c4b43;
 }
 
+.timer-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#timer {
+    text-align: center;
+    width: 60px;
+    font-size: 48px;
+    font-weight: 700;
+    color: #cfcfce;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: #472d2d;
+}
+
 .pop-up {
     width: 300px;
-    background-color: #bbb5ad;
+    background-color: #c6c0b8;
     border: 5px solid #4c4b43;
     position: absolute;
     top: calc(50% - 150px);
@@ -82,7 +100,7 @@ section {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .primary-button {
@@ -103,31 +121,34 @@ section {
 .speed-container {
     display: flex;
     flex-direction: column;
-    margin: 8px;
+    margin: 32px;
     flex: 1;
 }
 
-.legends-container {
+.instructions {
     flex: 1;
+    margin: 32px;
 }
 
 .legend {
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin: 8px;
+    margin-bottom: 8px;
 }
 
 .legend-square {
     height: 12px;
     width: 12px;
-    margin-right: 4px;
+    margin-right: 8px;
     flex-shrink: 0;
 }
 
 .player-color {
     background-color: coral;
     animation: player-blink 0.4s infinite;
+    box-sizing: content-box;
+    border: 2px solid #e0e1dd;
 }
 
 @keyframes player-blink {
@@ -149,4 +170,46 @@ section {
     background-color: #87c97b;
     box-sizing: content-box;
     border: 2px solid #e0e1dd;
+}
+
+.tip {
+    display: flex;
+    justify-content: center;
+    background-color: rgb(0, 0, 0, 0.7);
+    border-radius: 2px;
+    padding: 4px;
+}
+
+#maze-is-not-ready-tip {
+    width: 200px;
+    position: absolute;
+    top: 40%;
+    left: calc(50% - 100px);
+}
+
+#timer-tip {
+    width: 140px;
+    position: absolute;
+    right: -156px;
+    animation: timer-tip-blink 1s infinite;
+}
+
+.tip-text {
+    text-align: center;
+    color: #e0e1dd;
+}
+
+@keyframes timer-tip-blink {
+    0% {
+        opacity: 1;
+    }
+    30% {
+        opacity: 1;
+    }
+    65% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
 }
