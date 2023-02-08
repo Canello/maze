@@ -216,11 +216,18 @@ section {
     }
 }
 
+.speed-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+}
+
 .speed-button {
     background-color: #cfcfce;
-    width: 240px;
+    height: 40px;
     padding: 8px;
-    margin-bottom: 8px;
     color: #472d2d;
     border: none;
     transition: 300ms;

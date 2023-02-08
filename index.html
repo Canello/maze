@@ -23,14 +23,20 @@
             <div class="speed-container">
                 <h3>Maze generation speed:</h3>
                 <div class="y-16"></div>
-                <button id="animation-slow" class="speed-button">Slow</button>
-                <button id="animation-medium" class="speed-button">
-                    Medium
-                </button>
-                <button id="animation-fast" class="speed-button">Fast</button>
-                <button id="animation-instantaneous" class="speed-button">
-                    Instantaneous
-                </button>
+                <div class="speed-grid">
+                    <button id="animation-slow" class="speed-button">
+                        Slow
+                    </button>
+                    <button id="animation-medium" class="speed-button">
+                        Medium
+                    </button>
+                    <button id="animation-fast" class="speed-button">
+                        Fast
+                    </button>
+                    <button id="animation-instantaneous" class="speed-button">
+                        Instantaneous
+                    </button>
+                </div>
             </div>
 
             <canvas id="screen"></canvas>
@@ -66,16 +72,16 @@
         <div id="victory-pop-up" class="pop-up hidden">
             <h2>You Win!</h2>
             <div class="y-8"></div>
-            <span class="text-center"
-                >You made it on time. So, you won't need to take shots.</span
-            >
+            <span class="text-center">You've made it on time.</span>
             <div class="y-16"></div>
             <button id="victory-button" class="primary-button w-100">
                 Noice
             </button>
         </div>
         <div id="maze-is-not-ready-tip" class="tip hidden">
-            <span class="tip-text">Uuuh, you gotta have a maze to play...</span>
+            <span class="tip-text"
+                >Uuuh, you gotta have a maze ready to play...</span
+            >
         </div>
     </body>
     <script src="./src/app.js"></script>
