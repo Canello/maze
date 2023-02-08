@@ -338,6 +338,7 @@ class Grid {
 
         const animate = () => {
             setTimeout(() => {
+                if (MS_PER_FRAME < 0) return this.generateMaze();
                 if (!this._isCurrentAnimation(animationId)) return;
                 if (stack.length > 0) {
                     this._dfs(stack);
@@ -473,7 +474,6 @@ class UI {
 
     _setupButtons() {
         this._setupAnimateButton();
-        this._setupGenerateInstButton();
         this._setupPlayButton();
         this._setupAnimationSpeedButtons();
         this._setVictoryButton();
@@ -491,37 +491,61 @@ class UI {
         );
     }
 
-    _setupGenerateInstButton() {
-        const generateInstButton = document.getElementById("generate-inst");
-        generateInstButton.addEventListener("click", () =>
-            this._game.generateMaze()
-        );
-    }
-
     _setupPlayButton() {
         const playButton = document.getElementById("play");
         playButton.addEventListener("click", () => this._game.start());
     }
 
     _setupAnimationSpeedButtons() {
-        const fastButton = document.getElementById("animation-fast");
-        const mediumButton = document.getElementById("animation-medium");
         const slowButton = document.getElementById("animation-slow");
-        fastButton.addEventListener("click", () =>
-            this._setAnimationSpeed("fast")
+        const mediumButton = document.getElementById("animation-medium");
+        const fastButton = document.getElementById("animation-fast");
+        const instantaneousButton = document.getElementById(
+            "animation-instantaneous"
         );
-        mediumButton.addEventListener("click", () =>
-            this._setAnimationSpeed("medium")
-        );
-        slowButton.addEventListener("click", () =>
-            this._setAnimationSpeed("slow")
-        );
+        slowButton.addEventListener("click", () => {
+            this._setAnimationSpeed("slow");
+            this._setCurrentSpeedButton("slow");
+        });
+        mediumButton.addEventListener("click", () => {
+            this._setAnimationSpeed("medium");
+            this._setCurrentSpeedButton("medium");
+        });
+        mediumButton.click();
+        fastButton.addEventListener("click", () => {
+            this._setAnimationSpeed("fast");
+            this._setCurrentSpeedButton("fast");
+        });
+        instantaneousButton.addEventListener("click", () => {
+            this._setAnimationSpeed("instantaneous");
+            this._setCurrentSpeedButton("instantaneous");
+        });
+    }
+
+    _setCurrentSpeedButton(speed) {
+        const buttons = {
+            slow: document.getElementById("animation-slow"),
+            medium: document.getElementById("animation-medium"),
+            fast: document.getElementById("animation-fast"),
+            instantaneous: document.getElementById("animation-instantaneous"),
+        };
+
+        const currentButton = buttons[speed];
+        const otherButtons = Object.keys(buttons)
+            .filter((key) => key !== speed)
+            .map((key) => buttons[key]);
+
+        for (let button of otherButtons) {
+            button.classList.remove("current-speed");
+        }
+        currentButton.classList.add("current-speed");
     }
 
     _setAnimationSpeed(speed) {
         if (speed === "fast") MS_PER_FRAME = 0;
         else if (speed === "medium") MS_PER_FRAME = 50;
         else if (speed === "slow") MS_PER_FRAME = 100;
+        else if (speed === "instantaneous") MS_PER_FRAME = -1;
     }
 
     showVictoryPopUp() {
@@ -748,9 +772,16 @@ class Game {
     _getMove(key) {
         const allowedMoves = {
             ArrowUp: [-1, 0],
-            ArrowRight: [0, 1],
-            ArrowDown: [1, 0],
+            w: [-1, 0],
+
             ArrowLeft: [0, -1],
+            a: [0, -1],
+
+            ArrowDown: [1, 0],
+            s: [1, 0],
+
+            ArrowRight: [0, 1],
+            d: [0, 1],
         };
         return allowedMoves[key];
     }
