@@ -76,7 +76,7 @@ section {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 40px;
+    padding: 24px;
 }
 
 .y-8 {
@@ -129,6 +129,7 @@ section {
 
 .instructions {
     flex: 1;
+    flex-direction: column;
     margin: 32px;
 }
 
@@ -179,7 +180,7 @@ section {
     justify-content: center;
     background-color: rgb(0, 0, 0, 0.7);
     border-radius: 2px;
-    padding: 4px;
+    padding: 8px 4px;
 }
 
 #maze-is-not-ready-tip {
@@ -189,10 +190,14 @@ section {
     left: calc(50% - 100px);
 }
 
+#defeat-tip {
+    width: 200px;
+}
+
 #timer-tip {
-    width: 140px;
+    width: 160px;
     position: absolute;
-    right: -156px;
+    right: -176px;
     animation: timer-tip-blink 1s infinite;
 }
 
@@ -246,4 +251,10 @@ section {
 
 .current-speed:hover {
     background-color: #a6a89e;
+}
+
+.rules {
+    background-color: rgba(207, 207, 206, 0.5);
+    padding: 24px;
+    border-radius: 3px;
 }

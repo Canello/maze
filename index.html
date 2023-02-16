@@ -21,7 +21,7 @@
 
         <section>
             <div class="speed-container">
-                <h3>Maze generation speed:</h3>
+                <h3 class="text-center">Maze generation speed:</h3>
                 <div class="y-16"></div>
                 <div class="speed-grid">
                     <button id="animation-slow" class="speed-button">
@@ -38,11 +38,11 @@
                     </button>
                 </div>
                 <div class="y-32"></div>
-                <div>
-                    <h3>How to play?</h3>
-                    <br />
+                <div class="rules">
+                    <h3 class="text-center">How to play?</h3>
+                    <div class="y-16"></div>
                     <span
-                        >- After generating the maze, hit play to start.
+                        >- After generating the maze, hit Play to start.
                         <br /><br />
                         - Use the arrow keys or W, A, S, D to move the player.
                         <br /><br />
@@ -66,6 +66,13 @@
                     <div class="legend-square player-color"></div>
                     <span>This is you (appears when you hit Play)</span>
                 </div>
+                <div class="y-32"></div>
+                <div id="defeat-tip" class="tip hidden">
+                    <span class="tip-text"
+                        >Hey, time is up!<br />But you can try to finish the
+                        maze anyways.</span
+                    >
+                </div>
             </div>
         </section>
 
@@ -74,9 +81,17 @@
             <div class="y-8"></div>
             <span class="text-center">You've made it on time.</span>
             <div class="y-16"></div>
-            <button id="victory-button" class="primary-button w-100">
-                Noice
-            </button>
+            <button id="victory-button" class="primary-button w-100">Ok</button>
+        </div>
+        <div id="defeat-pop-up" class="pop-up hidden">
+            <h2>Uuuh, almost there!</h2>
+            <div class="y-8"></div>
+            <span class="text-center"
+                >You've made it until the end, but you're a little too
+                late.</span
+            >
+            <div class="y-16"></div>
+            <button id="defeat-button" class="primary-button w-100">Ok</button>
         </div>
         <div id="maze-is-not-ready-tip" class="tip hidden">
             <span class="tip-text"

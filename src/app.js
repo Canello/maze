@@ -477,11 +477,17 @@ class UI {
         this._setupPlayButton();
         this._setupAnimationSpeedButtons();
         this._setVictoryButton();
+        this._setDefeatButton();
     }
 
     _setVictoryButton() {
         const victoryButton = document.getElementById("victory-button");
         victoryButton.addEventListener("click", () => this.confirmVictory());
+    }
+
+    _setDefeatButton() {
+        const defeatButton = document.getElementById("defeat-button");
+        defeatButton.addEventListener("click", () => this.confirmDefeat());
     }
 
     _setupAnimateButton() {
@@ -558,6 +564,11 @@ class UI {
         this._game.reset();
     }
 
+    confirmDefeat() {
+        this.hideDefeatPopUp();
+        this._game.reset();
+    }
+
     _hideVictoryPopUp() {
         const popUp = document.getElementById("victory-pop-up");
         popUp.classList.add("hidden");
@@ -598,6 +609,26 @@ class UI {
     hideTimerTip() {
         const timerTip = document.getElementById("timer-tip");
         timerTip.classList.add("hidden");
+    }
+
+    showDefeatTip() {
+        const defeatTip = document.getElementById("defeat-tip");
+        defeatTip.classList.remove("hidden");
+    }
+
+    hideDefeatTip() {
+        const defeatTip = document.getElementById("defeat-tip");
+        defeatTip.classList.add("hidden");
+    }
+
+    showDefeatPopUp() {
+        const defeatPopUp = document.getElementById("defeat-pop-up");
+        defeatPopUp.classList.remove("hidden");
+    }
+
+    hideDefeatPopUp() {
+        const defeatPopUp = document.getElementById("defeat-pop-up");
+        defeatPopUp.classList.add("hidden");
     }
 }
 
@@ -689,20 +720,33 @@ class Game {
             if (!this._player) return;
             if (!this._grid.isMazeReady) return;
             if (gameLoopId !== this._currentGameLoopId) return;
-            if (this._hasWon()) this._handleVictory();
+            if (this._hasFinished()) this._handleFinish();
+            if (this._hasLost()) this._handleDefeat();
             this._draw();
             requestAnimationFrame(animate);
         };
         requestAnimationFrame(animate);
     }
 
-    _hasWon() {
+    _hasFinished() {
         return this._grid.isExit(this._player.row, this._player.col);
     }
 
-    _handleVictory() {
+    _hasLost() {
+        return this.timer.time < 0;
+    }
+
+    _handleFinish() {
         this.timer.stop();
-        this.UI.showVictoryPopUp();
+        if (this._hasLost()) {
+            this.UI.showDefeatPopUp();
+        } else {
+            this.UI.showVictoryPopUp();
+        }
+    }
+
+    _handleDefeat() {
+        this.UI.showDefeatTip();
     }
 
     _clearScreen() {
@@ -732,6 +776,7 @@ class Game {
         this._deletePlayer();
         this._grid.unexploreAllCells();
         this.timer.reset();
+        this.UI.hideDefeatTip();
         this._draw();
     }
 
