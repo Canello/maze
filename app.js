@@ -215,8 +215,8 @@ class Grid {
     constructor() {
         this.isMazeReady = false;
         this.currentAnimationId = 0;
-        this.numRows = Math.floor(screen.height / CELL_HEIGHT);
-        this.numCols = Math.floor(screen.width / CELL_WIDTH);
+        this.numRows = NUM_ROWS;
+        this.numCols = NUM_COLS;
         this.exitRow = null;
         this.exitCol = null;
         this.grid = this._buildGrid();
@@ -265,7 +265,7 @@ class Grid {
         return row === this.exitRow && col === this.exitCol;
     }
 
-    _isValidCell(row, col) {
+    _shouldVisit(row, col) {
         return this._isInsideGrid(row, col) && !this._hasBeenVisited(row, col);
     }
 
@@ -277,7 +277,7 @@ class Grid {
         arr.sort(() => Math.random() - 0.5);
     }
 
-    _getDirections() {
+    _getShuffledDirections() {
         const directions = [
             { deltaRow: -1, deltaCol: 0 }, // Up
             { deltaRow: 0, deltaCol: 1 }, // Right
@@ -288,19 +288,26 @@ class Grid {
         return directions;
     }
 
-    _pushNeighborToStack(direction, currentCell, stack) {
+    _getNextRowAndCol(direction, currentCell) {
         const { row, col } = currentCell;
         const { deltaRow, deltaCol } = direction;
         const nextRow = row + deltaRow;
         const nextCol = col + deltaCol;
+        return [nextRow, nextCol];
+    }
 
-        if (this._isValidCell(nextRow, nextCol)) {
+    _pushNeighborToStack(direction, currentCell, stack) {
+        const [nextRow, nextCol] = this._getNextRowAndCol(
+            direction,
+            currentCell
+        );
+        if (this._shouldVisit(nextRow, nextCol)) {
             stack.push(new Move(this.grid[nextRow][nextCol], currentCell));
         }
     }
 
     _pushNeighborsToStack(currentCell, stack) {
-        const directions = this._getDirections();
+        const directions = this._getShuffledDirections();
         for (let i = 0; i < directions.length; i++) {
             this._pushNeighborToStack(directions[i], currentCell, stack);
         }
