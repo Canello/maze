@@ -10,7 +10,8 @@ h2,
 h3,
 h4,
 h5,
-h6 {
+h6,
+p {
     margin: 0;
 }
 
@@ -41,7 +42,7 @@ header:first-child {
     margin-left: 0;
 }
 
-section {
+main {
     display: flex;
     justify-content: center;
 }

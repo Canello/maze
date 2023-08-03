@@ -7,6 +7,7 @@
         <title>Maze Generator</title>
         <link rel="icon" type="image/png" href="/assets/favicon.png" />
         <link rel="stylesheet" href="styles.css" />
+        <script defer type="module" src="./app.js"></script>
     </head>
     <body>
         <header>
@@ -15,13 +16,12 @@
             <div class="timer-container">
                 <div id="timer"></div>
                 <div id="timer-tip" class="tip hidden">
-                    <span class="tip-text">You have 60 seconds to escape!</span>
+                    <p class="tip-text">You have 60 seconds to escape!</p>
                 </div>
             </div>
         </header>
-
-        <section>
-            <div class="speed-container">
+        <main>
+            <aside class="speed-container">
                 <h3 class="text-center">Maze generation speed:</h3>
                 <div class="y-16"></div>
                 <div class="speed-grid">
@@ -42,63 +42,62 @@
                 <div class="rules">
                     <h3 class="text-center">How to play?</h3>
                     <div class="y-16"></div>
-                    <span
-                        >- After generating the maze, hit Play to start.
+                    <p>
+                        - After generating the maze, hit Play to start.
                         <br /><br />
                         - Use the arrow keys or W, A, S, D to move the player.
                         <br /><br />
                         - You have 60 seconds. You win if you reach the exit
-                        before the time runs out.</span
-                    >
+                        before the time runs out.
+                    </p>
                 </div>
-            </div>
+            </aside>
 
             <canvas id="screen"></canvas>
 
-            <div class="instructions">
+            <aside class="instructions">
                 <div class="legend">
                     <div class="legend-square exit-color"></div>
-                    <span
-                        >This is the exit of the maze (appears when the maze is
-                        generated)</span
-                    >
+                    <p></p>
+                        This is the exit of the maze (appears when the maze is
+                        generated)
+                    </p>
                 </div>
                 <div class="legend">
                     <div class="legend-square player-color"></div>
-                    <span>This is you (appears when you hit Play)</span>
+                    <p>This is you (appears when you hit Play)</p>
                 </div>
                 <div class="y-32"></div>
                 <div id="defeat-tip" class="tip hidden">
-                    <span class="tip-text"
-                        >Hey, time is up!<br />But you can try to finish the
-                        maze anyways.</span
-                    >
+                    <p class="tip-text">
+                        Hey, time is up!<br />But you can try to finish the maze
+                        anyways.
+                    </p>
                 </div>
-            </div>
-        </section>
+            </aside>
 
-        <div id="victory-pop-up" class="pop-up hidden">
-            <h2>You win!</h2>
-            <div class="y-8"></div>
-            <span class="text-center">You've made it on time.</span>
-            <div class="y-16"></div>
-            <button id="victory-button" class="primary-button w-100">Ok</button>
-        </div>
-        <div id="defeat-pop-up" class="pop-up hidden">
-            <h2>Almost there!</h2>
-            <div class="y-8"></div>
-            <span class="text-center"
-                >You've made it until the end, but you're a little too
-                late.</span
-            >
-            <div class="y-16"></div>
-            <button id="defeat-button" class="primary-button w-100">Ok</button>
-        </div>
-        <div id="maze-is-not-ready-tip" class="tip hidden">
-            <span class="tip-text"
-                >Uuh, you have to have a maze ready to play...</span
-            >
-        </div>
+            <div id="victory-pop-up" class="pop-up hidden">
+                <h2>You win!</h2>
+                <div class="y-8"></div>
+                <p class="text-center">You've made it on time.</p>
+                <div class="y-16"></div>
+                <button id="victory-button" class="primary-button w-100">Ok</button>
+            </div>
+            <div id="defeat-pop-up" class="pop-up hidden">
+                <h2>Almost there!</h2>
+                <div class="y-8"></div>
+                <p class="text-center">
+                    You've made it until the end, but you're a little too late.
+                </p>
+                <div class="y-16"></div>
+                <button id="defeat-button" class="primary-button w-100">Ok</button>
+            </div>
+            <div id="maze-is-not-ready-tip" class="tip hidden">
+                <p class="tip-text">
+                    Uuh, you have to have a maze ready to play...
+                </p>
+            </div>
+        </main>
+        <footer></footer>
     </body>
-    <script type="module" src="./app.js"></script>
 </html>
